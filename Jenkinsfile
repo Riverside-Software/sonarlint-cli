@@ -1,12 +1,13 @@
 #!groovy
 
-stage 'Build sonarlint-core'
+stage 'Build sonarlint-cli'
 node ('master') {
   gitClean()
   checkout scm
   withEnv(["PATH+MAVEN=${tool name: 'Maven 3', type: 'hudson.tasks.Maven$MavenInstallation'}/bin"]) {
     sh "mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install"
   }
+  archiveArtifacts artifacts: 'target/*.zip'
 }
 
 // see https://issues.jenkins-ci.org/browse/JENKINS-31924
