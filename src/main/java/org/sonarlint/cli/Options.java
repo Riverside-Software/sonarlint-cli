@@ -31,6 +31,7 @@ public class Options {
   private boolean version = false;
   private boolean showStack = false;
   private boolean interactive = false;
+  private boolean onlyNewIssues = false;
   private String htmlReport = null;
   private String xmlReport = null;
   private String src = null;
@@ -65,6 +66,9 @@ public class Options {
 
       } else if ("-u".equals(arg) || "--update".equals(arg)) {
         options.update = true;
+
+      } else if ("-n".equals(arg) || "--new-issues".equals(arg)) {
+        options.onlyNewIssues = true;
 
       } else if (arg.startsWith("-D") && !"-D".equals(arg)) {
         arg = arg.substring(2);
@@ -114,6 +118,10 @@ public class Options {
     if (i >= argsLength) {
       throw new ParseException("Missing argument for option " + arg, i);
     }
+  }
+
+  public boolean onlyNewIssues() {
+	  return onlyNewIssues;
   }
 
   public boolean isVerbose() {

@@ -33,6 +33,7 @@ public class ReportFactory {
   private String htmlPath = null;
   private String xmlPath = null;
   private Charset charset;
+  private boolean onlyNewIssues;
 
   public ReportFactory(Charset charset) {
     this.charset = charset;
@@ -56,6 +57,14 @@ public class ReportFactory {
 
   public void setXmlPath(@Nullable String path) {
     xmlPath = path;
+  }
+
+  public void setOnlyNewIssues(boolean onlyNew) {
+    this.onlyNewIssues = onlyNew;
+  }
+
+  public boolean isOnlyNewIssues() {
+    return onlyNewIssues;
   }
 
   Path getReportFile(Path basePath) {

@@ -177,6 +177,7 @@ public class Main {
 
     InputFileFinder fileFinder = new InputFileFinder(parsedOpts.src(), parsedOpts.tests(), parsedOpts.exclusions(), charset);
     ReportFactory reportFactory = new ReportFactory(charset);
+    reportFactory.setOnlyNewIssues(parsedOpts.onlyNewIssues());
     ConfigurationReader reader = new ConfigurationReader();
     SonarLintFactory sonarLintFactory = new SonarLintFactory(reader);
 
