@@ -32,6 +32,7 @@ public class ReportFactory {
   private static final String DEFAULT_REPORT_PATH = ".sonarlint/sonarlint-report.html";
   private String htmlPath = null;
   private Charset charset;
+  private boolean onlyNewIssues;
 
   public ReportFactory(Charset charset) {
     this.charset = charset;
@@ -48,6 +49,14 @@ public class ReportFactory {
 
   public void setHtmlPath(@Nullable String path) {
     htmlPath = path;
+  }
+
+  public void setOnlyNewIssues(boolean onlyNew) {
+    this.onlyNewIssues = onlyNew;
+  }
+
+  public boolean isOnlyNewIssues() {
+    return onlyNewIssues;
   }
 
   Path getReportFile(Path basePath) {

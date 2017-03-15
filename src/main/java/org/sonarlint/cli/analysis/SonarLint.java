@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.sonarlint.cli.InputFileFinder;
 import org.sonarlint.cli.report.ReportFactory;
 import org.sonarlint.cli.report.Reporter;
@@ -69,7 +71,7 @@ public abstract class SonarLint {
     List<Reporter> reporters = reportFactory.createReporters(baseDir);
 
     for (Reporter r : reporters) {
-      r.execute(projectName, date, trackables, result, this::getRuleDetails);
+      r.execute(projectName, date, trackables.stream().filter(issue -> !reportFactory.isOnlyNewIssues() || (reportFactory.isOnlyNewIssues() && (issue.getServerIssueKey() == null))).collect(Collectors.toList()), result, this::getRuleDetails);
     }
   }
 }
