@@ -38,9 +38,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,8 +54,8 @@ import org.sonarsource.sonarlint.core.client.api.common.analysis.ClientInputFile
 import org.sonarsource.sonarlint.core.client.api.common.analysis.Issue;
 import org.sonarsource.sonarlint.core.client.api.connected.ConnectedSonarLintEngine;
 import org.sonarsource.sonarlint.core.client.api.connected.GlobalStorageStatus;
-import org.sonarsource.sonarlint.core.client.api.connected.ModuleStorageStatus;
-import org.sonarsource.sonarlint.core.client.api.connected.RemoteModule;
+import org.sonarsource.sonarlint.core.client.api.connected.ProjectStorageStatus;
+import org.sonarsource.sonarlint.core.client.api.connected.RemoteProject;
 import org.sonarsource.sonarlint.core.client.api.connected.ServerConfiguration;
 import org.sonarsource.sonarlint.core.client.api.connected.ServerIssue;
 import org.sonarsource.sonarlint.core.tracking.Trackable;
@@ -80,46 +80,46 @@ public class ConnectedSonarLintTest {
 
   @Test
   public void testForceUpdate() {
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     sonarLint.start(true);
 
     verify(engine).update(any(ServerConfiguration.class), any(ProgressMonitor.class));
-    verify(engine).updateModule(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
+    verify(engine).updateProject(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
   }
 
   @Test
   public void testNoUpdate() {
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     sonarLint.start(false);
 
     verify(engine).update(any(ServerConfiguration.class), any(ProgressMonitor.class));
-    verify(engine).updateModule(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
+    verify(engine).updateProject(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
   }
 
   @Test
   public void testStaleUpdate() {
     GlobalStorageStatus status = mock(GlobalStorageStatus.class);
     when(status.isStale()).thenReturn(true);
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     when(engine.getGlobalStorageStatus()).thenReturn(status);
     sonarLint.start(false);
 
     verify(engine).update(any(ServerConfiguration.class), any(ProgressMonitor.class));
-    verify(engine).updateModule(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
+    verify(engine).updateProject(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
   }
 
   @Test
   public void testModuleUpdateOnly() {
     GlobalStorageStatus status = mock(GlobalStorageStatus.class);
     when(status.isStale()).thenReturn(false);
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     when(engine.getGlobalStorageStatus()).thenReturn(status);
     sonarLint.start(false);
 
-    verify(engine).updateModule(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
-    verify(engine).allModulesByKey();
+    verify(engine).updateProject(any(ServerConfiguration.class), eq("project1"), any(ProgressMonitor.class));
+    verify(engine).allProjectsByKey();
     verify(engine).getGlobalStorageStatus();
-    verify(engine).getModuleStorageStatus("project1");
+    verify(engine).getProjectStorageStatus("project1");
     verifyNoMoreInteractions(engine);
   }
 
@@ -127,7 +127,7 @@ public class ConnectedSonarLintTest {
   public void testModuleDoesntExistInUpdate() {
     GlobalStorageStatus status = mock(GlobalStorageStatus.class);
     when(status.isStale()).thenReturn(true);
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("p"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("p"));
     when(engine.getGlobalStorageStatus()).thenReturn(status);
 
     exception.expect(IllegalStateException.class);
@@ -140,7 +140,7 @@ public class ConnectedSonarLintTest {
   public void testModuleDoesntExist() {
     GlobalStorageStatus status = mock(GlobalStorageStatus.class);
     when(status.isStale()).thenReturn(false);
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("p"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("p"));
     when(engine.getGlobalStorageStatus()).thenReturn(status);
 
     exception.expect(IllegalStateException.class);
@@ -161,15 +161,15 @@ public class ConnectedSonarLintTest {
     when(status.isStale()).thenReturn(false);
     when(engine.getGlobalStorageStatus()).thenReturn(status);
 
-    ModuleStorageStatus moduleStatus = mock(ModuleStorageStatus.class);
-    when(engine.getModuleStorageStatus("project1")).thenReturn(moduleStatus);
+    ProjectStorageStatus moduleStatus = mock(ProjectStorageStatus.class);
+    when(engine.getProjectStorageStatus("project1")).thenReturn(moduleStatus);
 
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     sonarLint.start(false);
 
-    verify(engine).allModulesByKey();
+    verify(engine).allProjectsByKey();
     verify(engine).getGlobalStorageStatus();
-    verify(engine).getModuleStorageStatus("project1");
+    verify(engine).getProjectStorageStatus("project1");
     verifyNoMoreInteractions(engine);
   }
 
@@ -179,18 +179,18 @@ public class ConnectedSonarLintTest {
     when(status.isStale()).thenReturn(false);
     when(engine.getGlobalStorageStatus()).thenReturn(status);
 
-    ModuleStorageStatus moduleStatus = mock(ModuleStorageStatus.class);
+    ProjectStorageStatus moduleStatus = mock(ProjectStorageStatus.class);
     when(moduleStatus.isStale()).thenReturn(true);
     String moduleKey = "project1";
-    when(engine.getModuleStorageStatus(moduleKey)).thenReturn(moduleStatus);
+    when(engine.getProjectStorageStatus(moduleKey)).thenReturn(moduleStatus);
 
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey(moduleKey));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey(moduleKey));
     sonarLint.start(false);
 
-    verify(engine).allModulesByKey();
+    verify(engine).allProjectsByKey();
     verify(engine).getGlobalStorageStatus();
-    verify(engine).getModuleStorageStatus(moduleKey);
-    verify(engine).updateModule(any(), eq(moduleKey), any(ProgressMonitor.class));
+    verify(engine).getProjectStorageStatus(moduleKey);
+    verify(engine).updateProject(any(), eq(moduleKey), any(ProgressMonitor.class));
     verifyNoMoreInteractions(engine);
   }
 
@@ -202,7 +202,7 @@ public class ConnectedSonarLintTest {
     engine = mock(ConnectedSonarLintEngine.class);
     sonarLint = new ConnectedSonarLint(engine, server, "project1", verbose);
 
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     sonarLint.start(false);
 
     // 2 calls: 1 to update global data and 1 to update module data
@@ -218,7 +218,7 @@ public class ConnectedSonarLintTest {
     engine = mock(ConnectedSonarLintEngine.class);
     sonarLint = new ConnectedSonarLint(engine, server, "project1", verbose);
 
-    when(engine.allModulesByKey()).thenReturn(getModulesByKey("project1"));
+    when(engine.allProjectsByKey()).thenReturn(getProjectsByKey("project1"));
     sonarLint.start(false);
 
     // 2 calls: 1 to update global data and 1 to update module data
@@ -229,10 +229,10 @@ public class ConnectedSonarLintTest {
     verifyNoMoreInteractions(server);
   }
 
-  private Map<String, RemoteModule> getModulesByKey(String... keys) {
-    Map<String, RemoteModule> map = new HashMap<>();
+  private Map<String, RemoteProject> getProjectsByKey(String... keys) {
+    Map<String, RemoteProject> map = new HashMap<>();
     for (String k : keys) {
-      RemoteModule module = mock(RemoteModule.class);
+      RemoteProject module = mock(RemoteProject.class);
       map.put(k, module);
     }
     return map;

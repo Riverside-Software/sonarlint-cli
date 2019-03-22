@@ -41,7 +41,7 @@ import org.sonarsource.sonarlint.core.client.api.common.analysis.Issue;
 import org.sonarsource.sonarlint.core.client.api.connected.ConnectedAnalysisConfiguration;
 import org.sonarsource.sonarlint.core.client.api.connected.ConnectedSonarLintEngine;
 import org.sonarsource.sonarlint.core.client.api.connected.GlobalStorageStatus;
-import org.sonarsource.sonarlint.core.client.api.connected.ModuleStorageStatus;
+import org.sonarsource.sonarlint.core.client.api.connected.ProjectStorageStatus;
 import org.sonarsource.sonarlint.core.client.api.connected.ServerConfiguration;
 import org.sonarsource.sonarlint.core.tracking.CachingIssueTracker;
 import org.sonarsource.sonarlint.core.tracking.CachingIssueTrackerImpl;
@@ -89,26 +89,26 @@ public class ConnectedSonarLint extends SonarLint {
   }
 
   private void checkModuleStatus() {
-    engine.allModulesByKey().keySet().stream()
+    engine.allProjectsByKey().keySet().stream()
       .filter(key -> key.equals(moduleKey))
       .findAny()
       .orElseThrow(() -> new IllegalStateException("Project key '" + moduleKey + "' not found in the binding storage. Maybe an update of the storage is needed with '-u'?"));
 
-    ModuleStorageStatus moduleStorageStatus = engine.getModuleStorageStatus(moduleKey);
+    ProjectStorageStatus moduleStorageStatus = engine.getProjectStorageStatus(moduleKey);
     if (moduleStorageStatus == null) {
       LOGGER.info("Updating data for module..");
-      engine.updateModule(getServerConfiguration(server), moduleKey, progressMonitor);
+      engine.updateProject(getServerConfiguration(server), moduleKey, progressMonitor);
       LOGGER.info("Module updated");
     } else if (moduleStorageStatus.isStale()) {
       LOGGER.info("Module's data is stale. Updating..");
-      engine.updateModule(getServerConfiguration(server), moduleKey, progressMonitor);
+      engine.updateProject(getServerConfiguration(server), moduleKey, progressMonitor);
       LOGGER.info("Module updated");
     }
   }
 
   private void update() {
     engine.update(getServerConfiguration(server), progressMonitor);
-    engine.allModulesByKey().keySet().stream()
+    engine.allProjectsByKey().keySet().stream()
       .filter(key -> key.equals(moduleKey))
       .findAny()
       .orElseThrow(() -> new IllegalStateException("Project key '" + moduleKey + "' not found in the SonarQube server"));
@@ -117,7 +117,7 @@ public class ConnectedSonarLint extends SonarLint {
   }
 
   private void updateModule() {
-    engine.updateModule(getServerConfiguration(server), moduleKey, progressMonitor);
+    engine.updateProject(getServerConfiguration(server), moduleKey, progressMonitor);
   }
 
   private static ServerConfiguration getServerConfiguration(SonarQubeServer server) {
@@ -159,7 +159,7 @@ public class ConnectedSonarLint extends SonarLint {
     CachingIssueTracker issueTracker = new CachingIssueTrackerImpl(cache);
     trackablesPerFile.entrySet().forEach(entry -> issueTracker.matchAndTrackAsNew(entry.getKey(), entry.getValue()));
     ServerIssueTracker serverIssueTracker = new ServerIssueTracker(new MyLogger(), issueTracker);
-    serverIssueTracker.update(engine, moduleKey, relativePaths);
+    serverIssueTracker.update(engine, engine.calculatePathPrefixes(moduleKey, new ArrayList<String>()), relativePaths);
     return cache;
   }
 
