@@ -43,7 +43,7 @@
   <properties>
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <gitRepositoryName>sonarlint-cli</gitRepositoryName>
-    <sonarlint.version>4.1-RSSW</sonarlint.version>
+    <sonarlint.version>4.8-RSSW</sonarlint.version>
     <sonar.java.version>4.3.0.7717</sonar.java.version>
     <sonar.javascript.version>4.2.1.6529</sonar.javascript.version>
     <sonar.php.version>2.9.1.1705</sonar.php.version>
